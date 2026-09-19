@@ -1,32 +1,57 @@
-// Next.jsでページ遷移するためにLinkを使う
+// Next.jsのページ遷移
 import Link from "next/link";
 
+// shadcn/ui の見た目を使う
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+
+import { Badge } from "@/components/ui/badge";
+
+import { buttonVariants } from "@/components/ui/button";
 
 // QuestionCardコンポーネント
 // 親コンポーネントから question というデータを受け取る
 export default function QuestionCard({ question }) {
-
     return (
-        <div>
+        <Card>
 
-            {/* 質問のカテゴリを表示 */}
-            <p>
-                {question.category}
-            </p>
+            {/* 上部：カテゴリと質問文 */}
+            <CardHeader>
+
+                {/* 質問カテゴリ */}
+                <div className="mb-2">
+                    <Badge variant="secondary">
+                        {question.category}
+                    </Badge>
+                </div>
 
 
-            {/* 質問文を表示 */}
-            <h2>
-                {question.question}
-            </h2>
+                {/* 質問タイトル */}
+                <CardTitle className="text-xl leading-relaxed">
+                    {question.question}
+                </CardTitle>
+
+            </CardHeader>
 
 
-            {/* 質問の詳細ページへ移動する */}
-            {/* idが1なら /interview/1 に移動する */}
-            <Link href={`/interview/${question.id}`}>
-                回答を見る
-            </Link>
+            {/* 下部：詳細ページへのリンク */}
+            <CardContent>
 
-        </div>
+                <Link
+                    href={`/interview/${question.id}`}
+                    className={buttonVariants({
+                        variant: "outline",
+                    })}
+                >
+                    回答を見る
+                </Link>
+
+            </CardContent>
+
+        </Card>
     );
 }
