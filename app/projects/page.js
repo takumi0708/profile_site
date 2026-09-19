@@ -1,6 +1,8 @@
 // プロジェクトデータを読み込む
 import { projects } from "@/data/projects";
 
+import Link from "next/link";
+
 
 export default function ProjectsPage() {
 
@@ -41,6 +43,11 @@ export default function ProjectsPage() {
                             使用技術：
                             {project.technologies.join(" / ")}
                         </p>
+
+                        {/* プロジェクトの詳細ページに飛ぶ */}
+                        <Link href={`/projects/${project.id}`}>
+                            詳しく見る
+                        </Link>
 
                     </div>
                 );
