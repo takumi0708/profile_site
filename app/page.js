@@ -71,6 +71,7 @@ export default function HomePage() {
 
         <a
           href="https://github.com/takumi0708"
+          // 新たなタブで表示
           target="_blank"
         >
           GitHubを見る
