@@ -20,7 +20,7 @@ import {
 export default async function HomePage() {
   const { data: profile } = await getProfile();
   const links = (Array.isArray(profile.links) ? profile.links : []).flatMap(link => {
-    try { return parseProfileLinks(`${link.label} | ${link.url}`); } catch { return []; }
+    try { return parseProfileLinks(`${link.label} | ${link.url}${link.color ? ` | ${link.color}` : ""}`); } catch { return []; }
   });
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -43,17 +43,17 @@ export default async function HomePage() {
           </h1>
 
           <div className="max-w-2xl text-lg leading-8 text-muted-foreground"><Markdown>{profile.bio}</Markdown></div>
-          {links.length > 0 && <nav aria-label="プロフィールリンク" className="mt-6 flex flex-wrap gap-3">{links.map((link, index) => <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline" })}>{link.label} ↗</a>)}</nav>}
+          {links.length > 0 && <nav aria-label="プロフィールリンク" className="mt-6 flex flex-wrap gap-3">{links.map((link, index) => <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" style={{ color: link.color || "#171717" }} className={buttonVariants({ variant: "link" })}>{link.label} ↗</a>)}</nav>}
 
 
           {/* ページ遷移ボタン */}
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/questions" className={buttonVariants({ variant: "outline" })}>質問コーナー</Link>
+            <Link href="/questions" className={buttonVariants({ variant: "black" })}>質問コーナー</Link>
 
             {/* LinkにButtonのデザインを適用 */}
             <Link
               href="/interview"
-              className={buttonVariants()}
+              className={buttonVariants({ variant: "black" })}
             >
               Interview Q&A
             </Link>
@@ -62,7 +62,7 @@ export default async function HomePage() {
             <Link
               href="/projects"
               className={buttonVariants({
-                variant: "outline",
+                variant: "black",
               })}
             >
               Projects

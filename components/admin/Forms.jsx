@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { login, saveQuestion, deletePost, saveProjectTags, saveProject, saveProfile } from "@/app/admin/actions";
 import { buttonVariants } from "@/components/ui/button";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
@@ -70,11 +70,18 @@ export function ProjectForm({ project }) {
 export function ProfileForm({ profile }) {
   const [state, action, pending] = useActionState(saveProfile, {});
   const values = state.values || profile;
+  const [linksText, setLinksText] = useState(() => Array.isArray(profile.links) ? profile.links.map(link => `${link.label} | ${link.url}${link.color ? ` | ${link.color}` : ""}`).join("\n") : profile.links || "");
   return <form action={action} className="space-y-4">
     <label className="block text-sm">表示名<input name="display_name" required maxLength={100} className={inputClass} defaultValue={values.display_name} /></label>
     <MarkdownEditor name="bio" label="自己紹介（Markdown）" maxLength={5000} rows={5} defaultValue={values.bio} />
-    <label className="block text-sm">紹介リンク（1行に1件・10件まで）<textarea name="links" rows={5} className={inputClass} defaultValue={Array.isArray(values.links) ? values.links.map(link => `${link.label} | ${link.url}`).join("\n") : values.links} placeholder={"X | https://x.com/yourname\nGitHub | https://github.com/yourname"} /></label>
-    <p className="text-xs text-muted-foreground">名前 | URL の形式で入力します。行を追加・変更・削除すると、トップページのリンクに反映されます。</p>
+    <label className="block text-sm">紹介リンク（1行に1件・10件まで）<textarea name="links" rows={5} className={inputClass} value={linksText} onChange={event => setLinksText(event.target.value)} placeholder={"X | https://x.com/yourname\nGitHub | https://github.com/yourname | #2563eb"} /></label>
+    <p className="text-xs text-muted-foreground">名前 | URL | 色 の形式です。色は省略できます。下の色選択からリンクごとに変更できます。</p>
+    <div className="flex flex-wrap gap-4">{linksText.split("\n").map((line, index) => {
+      if (!line.trim()) return null;
+      const parts = line.split("|").map(value => value.trim());
+      const color = /^#[0-9a-fA-F]{6}$/.test(parts[2] || "") ? parts[2] : "#171717";
+      return <label key={index} className="flex items-center gap-2 text-sm"><input type="color" aria-label={`${parts[0] || "リンク"}の文字色`} value={color} onChange={event => { const chosen = event.target.value; setLinksText(current => current.split("\n").map((text, row) => row === index ? `${text.split("|").slice(0, 2).join("|").trim()} | ${chosen}` : text).join("\n")); }} /><span style={{ color }}>{parts[0] || "リンク"} ↗</span></label>;
+    })}</div>
     <p role="status" className="text-sm">{state.error || state.success}</p>
     <button disabled={pending} className={buttonVariants()}>{pending ? "保存中…" : "自己紹介・リンクを保存"}</button>
   </form>;
