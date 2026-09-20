@@ -1,10 +1,11 @@
 // プロジェクトデータを読み込む
-import { projects } from "@/data/projects";
+import { getPublicContent } from "@/lib/content";
 
 import Link from "next/link";
 
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+    const { data: projects, error } = await getPublicContent("projects");
 
     return (
         <main>
@@ -20,7 +21,7 @@ export default function ProjectsPage() {
 
 
             {/* projects配列を1件ずつ表示する */}
-            {projects.map((project) => {
+            {error ? <p role="status">{error}</p> : projects.length === 0 ? <p>公開済みのプロジェクトはまだありません。</p> : projects.map((project) => {
 
                 return (
                     <div key={project.id}>

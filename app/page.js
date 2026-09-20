@@ -137,6 +137,9 @@ export default function HomePage() {
 
         </section>
 
+        <footer className="mt-12 text-sm text-muted-foreground">
+          <Link href="/admin" className="hover:underline">管理者ダッシュボード</Link>
+        </footer>
       </div>
 
     </main>

@@ -1,11 +1,12 @@
 // 質問データ
-import { questions } from "@/data/questions";
+import { getPublicContent } from "@/lib/content";
 
 // 質問カード
 import QuestionCard from "@/components/interview/QuestionCard";
 
 
-export default function InterviewPage() {
+export default async function InterviewPage() {
+    const { data: questions, error } = await getPublicContent("questions");
     return (
         <main className="min-h-screen bg-background">
 
@@ -35,7 +36,7 @@ export default function InterviewPage() {
                 {/* Q&A一覧 */}
                 <section className="grid gap-6">
 
-                    {questions.map((question) => (
+                    {error ? <p role="status" className="text-muted-foreground">{error}</p> : questions.length === 0 ? <p className="text-muted-foreground">公開済みの質問はまだありません。</p> : questions.map((question) => (
                         // ここでReactで描画（mapで再利用するため）
                         <QuestionCard
                             key={question.id}
