@@ -2,13 +2,15 @@
 import { getPublicContent } from "@/lib/content";
 
 import Link from "next/link";
+import Tags from "@/components/Tags";
+import { markdownPreview } from "@/lib/markdown.mjs";
 
 
 export default async function ProjectsPage() {
     const { data: projects, error } = await getPublicContent("projects");
 
     return (
-        <main>
+        <main className="mx-auto w-full max-w-5xl space-y-6 px-6 py-16">
 
             {/* ページタイトル */}
             <h1>
@@ -24,7 +26,8 @@ export default async function ProjectsPage() {
             {error ? <p role="status">{error}</p> : projects.length === 0 ? <p>公開済みのプロジェクトはまだありません。</p> : projects.map((project) => {
 
                 return (
-                    <div key={project.id}>
+                    <div key={project.id} className="space-y-4 rounded-xl border p-6">
+                        <Tags tags={project.tags} />
 
                         {/* プロジェクト名 */}
                         <h2>
@@ -34,7 +37,7 @@ export default async function ProjectsPage() {
 
                         {/* 概要 */}
                         <p>
-                            {project.summary}
+                            {markdownPreview(project.summary, 120)}
                         </p>
 
 

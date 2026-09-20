@@ -1,5 +1,7 @@
 // Next.jsのページ遷移
 import Link from "next/link";
+import Tags from "@/components/Tags";
+import { markdownPreview } from "@/lib/markdown.mjs";
 
 // shadcn/ui の見た目を使う
 import {
@@ -32,7 +34,7 @@ export default function QuestionCard({ question }) {
 
                 {/* 質問タイトル */}
                 <CardTitle className="text-xl leading-relaxed">
-                    {question.question}
+                    {markdownPreview(question.question, 500)}
                 </CardTitle>
 
             </CardHeader>
@@ -40,6 +42,8 @@ export default function QuestionCard({ question }) {
 
             {/* 下部：詳細ページへのリンク */}
             <CardContent>
+                <Tags tags={question.tags} />
+                <p className="mb-4 break-words text-sm text-muted-foreground">{markdownPreview(question.answer, 20)}</p>
 
                 <Link
                     href={`/interview/${question.id}`}

@@ -2,6 +2,23 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+.markdown-content { overflow-wrap: anywhere; line-height: 1.9; }
+.markdown-content > * + * { margin-top: 1rem; }
+.markdown-content h1 { font-size: 1.75rem; font-weight: 700; }
+.markdown-content h2 { font-size: 1.4rem; font-weight: 700; }
+.markdown-content h3, .markdown-content h4 { font-size: 1.15rem; font-weight: 600; }
+.markdown-content ul { list-style: disc; padding-left: 1.5rem; }
+.markdown-content ol { list-style: decimal; padding-left: 1.5rem; }
+.markdown-content li > ul, .markdown-content li > ol { margin-top: .25rem; }
+.markdown-content a { text-decoration: underline; text-underline-offset: 3px; }
+.markdown-content blockquote { border-left: 3px solid var(--border); padding-left: 1rem; color: var(--muted-foreground); }
+.markdown-content pre { overflow-x: auto; padding: 1rem; border-radius: .5rem; background: var(--muted); }
+.markdown-content code { font-family: monospace; background: var(--muted); border-radius: .25rem; padding: .1rem .25rem; }
+.markdown-content pre code { padding: 0; }
+.markdown-content table { display: block; overflow-x: auto; border-collapse: collapse; }
+.markdown-content th, .markdown-content td { border: 1px solid var(--border); padding: .5rem .75rem; }
+.markdown-content img { max-width: 100%; height: auto; border-radius: .5rem; }
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

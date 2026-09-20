@@ -1,12 +1,19 @@
 // 質問データ
 import { getPublicContent } from "@/lib/content";
+import { pageNumber } from "@/lib/profile-validation.mjs";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 // 質問カード
 import QuestionCard from "@/components/interview/QuestionCard";
 
 
-export default async function InterviewPage() {
-    const { data: questions, error } = await getPublicContent("questions");
+export default async function InterviewPage({ searchParams }) {
+    const page = pageNumber((await searchParams).page);
+    const { data: questions, error, count } = await getPublicContent("questions", undefined, page);
+    const totalPages = Math.max(1, Math.ceil((count || 0) / 10));
+    if (!error && page > totalPages) redirect(`/interview?page=${totalPages}`);
     return (
         <main className="min-h-screen bg-background">
 
@@ -46,6 +53,11 @@ export default async function InterviewPage() {
 
                 </section>
 
+                {!error && <nav aria-label="質問一覧のページ" className="mt-8 flex items-center justify-between gap-4">
+                    {page > 1 ? <Link href={`/interview?page=${page - 1}`} className={buttonVariants({ variant: "outline" })}>← 前の10件</Link> : <span />}
+                    <p className="text-sm text-muted-foreground">{page} / {totalPages} ページ（全{count || 0}件）</p>
+                    {page < totalPages ? <Link href={`/interview?page=${page + 1}`} className={buttonVariants({ variant: "outline" })}>次の10件 →</Link> : <span />}
+                </nav>}
             </div>
 
         </main>

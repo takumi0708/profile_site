@@ -1,5 +1,8 @@
 // Next.jsのページ遷移
 import Link from "next/link";
+import { getProfile } from "@/lib/content";
+import Markdown from "@/components/Markdown";
+import { parseProfileLinks } from "@/lib/profile-validation.mjs";
 
 // shadcn/ui
 // Button本体と、Buttonのデザインだけ使うためのbuttonVariants
@@ -14,7 +17,11 @@ import {
 } from "@/components/ui/card";
 
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { data: profile } = await getProfile();
+  const links = (Array.isArray(profile.links) ? profile.links : []).flatMap(link => {
+    try { return parseProfileLinks(`${link.label} | ${link.url}`); } catch { return []; }
+  });
   return (
     <main className="min-h-screen bg-background text-foreground">
 
@@ -32,13 +39,11 @@ export default function HomePage() {
           </p>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tight">
-            Takumi
+            {profile.display_name}
           </h1>
 
-          <p className="max-w-2xl text-lg leading-8 text-muted-foreground">
-            面接で聞かれそうな質問への回答や、
-            開発経験・研究内容をまとめています。
-          </p>
+          <div className="max-w-2xl text-lg leading-8 text-muted-foreground"><Markdown>{profile.bio}</Markdown></div>
+          {links.length > 0 && <nav aria-label="プロフィールリンク" className="mt-6 flex flex-wrap gap-3">{links.map((link, index) => <a key={index} href={link.url} target="_blank" rel="noopener noreferrer" className={buttonVariants({ variant: "outline" })}>{link.label} ↗</a>)}</nav>}
 
 
           {/* ページ遷移ボタン */}
