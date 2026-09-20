@@ -103,11 +103,11 @@ export async function saveProject(previousState, formData) {
   if (id && !validId(id)) return invalid("投稿IDが正しくありません。");
   const payload = { ...values, tags, technologies };
   const query = id ? supabase.from("projects").update(payload).eq("id", id) : supabase.from("projects").insert(payload);
-  const { error } = await query.select("id").single();
+  const { data, error } = await query.select("id").single();
   if (error) return invalid("プロジェクトを保存できませんでした。");
   revalidatePath("/projects", "layout");
   revalidatePath("/admin");
-  redirect("/admin?projectSaved=1#projects");
+  redirect(`/admin?projectSaved=${data.id}#projects`);
 }
 
 export async function saveProfile(previousState, formData) {

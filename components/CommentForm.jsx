@@ -8,7 +8,7 @@ export function CommentForm({ kind, target }) {
   const [state, action, pending] = useActionState(submitComment, {});
   if (state.success) return <p role="status" className="my-6 rounded-lg border p-4">{state.success}</p>;
   return <form action={action} className="mt-8 space-y-4 rounded-xl border p-6">
-    <h2 className="text-xl font-semibold">この内容について質問・コメントする</h2>
+    <h2 className="text-xl font-semibold">{kind === "general" ? "質問を送る（文字のみ）" : "この内容について質問・コメントする"}</h2>
     <p className="text-sm text-muted-foreground">ログイン不要です。投稿は管理者に届き、回答後に名前と内容が公開される場合があります。個人情報は記載しないでください。</p>
     <input type="hidden" name="kind" value={kind} /><input type="hidden" name="target" value={target} />
     <label className="block text-sm">お名前（任意・ニックネーム可）<input name="name" maxLength={80} defaultValue={state.values?.name} className={field} /></label>

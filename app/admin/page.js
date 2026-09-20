@@ -27,21 +27,21 @@ export default async function AdminPage({ searchParams }) {
     </div>
     {saved && <p role="status" className="mb-6 text-sm">質問を保存しました。</p>}
     {error ? <p role="alert">質問を取得できませんでした。再度お試しください。</p> : <div className="grid items-start gap-6 md:grid-cols-2">
-      <Card><CardHeader><CardTitle>{selected ? "質問を編集" : "質問を登録"}</CardTitle></CardHeader><CardContent><QuestionForm key={selected?.id || "new"} question={selected} parents={questions} />{selected && <Link className="mt-4 block text-sm underline" href="/admin">新しい質問を登録する</Link>}</CardContent></Card>
+      <Card><CardHeader><CardTitle>{selected ? "質問を編集" : "質問を登録"}</CardTitle></CardHeader><CardContent><QuestionForm key={selected ? `edit-${selected.id}` : `new-${saved || ""}`} question={selected} parents={questions} />{selected && <Link className="mt-4 block text-sm underline" href="/admin">新しい質問を登録する</Link>}</CardContent></Card>
       <Card><CardHeader><CardTitle>登録済みの質問（{questions.length}）</CardTitle></CardHeader><CardContent>
         {questions.length === 0 ? <p className="text-sm text-muted-foreground">まだ質問がありません。</p> : <ul className="space-y-4">{questions.map((q) => <li key={q.id} className="border-b pb-4 last:border-0"><p className="mb-1 text-xs text-muted-foreground">{q.is_public ? "公開中" : "下書き"} · {q.category}</p><Link href={`/admin?edit=${q.id}`} className="font-medium hover:underline">{q.question}</Link><DeleteForm table="questions" id={q.id} /></li>)}</ul>}
       </CardContent></Card>
     </div>}
     <Card className="mt-8" id="projects"><CardHeader><CardTitle>Projectsの管理</CardTitle></CardHeader><CardContent>
       {projectSaved && <p role="status" className="mb-4">プロジェクトを保存しました。</p>}
-      {projectsError ? <p role="alert">Projectsを取得できませんでした。</p> : <div className="grid gap-8 md:grid-cols-2"><div><ProjectForm key={projectEdit || "new"} project={projects.find(p => String(p.id) === projectEdit)} />{projectEdit && <Link href="/admin#projects" className="mt-4 block text-sm underline">新しいプロジェクトを登録する</Link>}</div><div>{projects.length === 0 ? <p>まだプロジェクトがありません。</p> : projects.map(p => <article key={p.id} className="mb-6 border-b pb-6"><p className="text-xs text-muted-foreground">{p.is_public ? "公開中" : "下書き"}</p><Link href={`/admin?projectEdit=${p.id}#projects`} className="font-semibold underline">{p.title}</Link><DeleteForm table="projects" id={p.id} /></article>)}</div></div>}
+      {projectsError ? <p role="alert">Projectsを取得できませんでした。</p> : <div className="grid gap-8 md:grid-cols-2"><div><ProjectForm key={projectEdit ? `edit-${projectEdit}` : `new-${projectSaved || ""}`} project={projects.find(p => String(p.id) === projectEdit)} />{projectEdit && <Link href="/admin#projects" className="mt-4 block text-sm underline">新しいプロジェクトを登録する</Link>}</div><div>{projects.length === 0 ? <p>まだプロジェクトがありません。</p> : projects.map(p => <article key={p.id} className="mb-6 border-b pb-6"><p className="text-xs text-muted-foreground">{p.is_public ? "公開中" : "下書き"}</p><Link href={`/admin?projectEdit=${p.id}#projects`} className="font-semibold underline">{p.title}</Link><DeleteForm table="projects" id={p.id} /></article>)}</div></div>}
     </CardContent></Card>
     <Card className="mt-8"><CardHeader><CardTitle>トップページの自己紹介・リンク</CardTitle></CardHeader><CardContent>{profile.error ? <p role="alert">プロフィール設定を読み込めません。追加SQL（202609200004_profile.sql）を実行してください。</p> : <ProfileForm profile={profile.data} />}</CardContent></Card>
     <Card className="mt-8"><CardHeader><CardTitle>閲覧者からの質問・コメント</CardTitle></CardHeader><CardContent>
       <p className="mb-4 text-sm text-muted-foreground">投稿を削除すると、その投稿に届いたコメントも削除されます。親質問の削除時は子質問を独立した質問として残します。</p>
       {commentsError ? <p role="alert">コメントを取得できません。追加SQLの実行を確認してください。</p> : comments.length === 0 ? <p>まだコメントがありません。</p> : comments.map(c => <article key={c.id} className="mb-8 rounded-lg border p-4">
         <p className="text-xs text-muted-foreground">{c.is_public ? "公開中" : "非公開"} · {c.notification_sent_at ? "メール通知済み" : "メール未送信"}</p>
-        <Link className="text-sm underline" href={c.question_id ? `/interview/${c.question_id}` : `/projects/${c.project_id}`}>投稿元を見る</Link>
+        <Link className="text-sm underline" href={c.is_general ? "/questions" : c.question_id ? `/interview/${c.question_id}` : `/projects/${c.project_id}`}>{c.is_general ? "質問コーナーからの投稿" : "投稿元を見る"}</Link>
         <p className="my-2 text-sm">{c.author_name || "匿名"} · {new Date(c.created_at).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}</p>
         <p className="whitespace-pre-wrap break-words">{c.body}</p>
         <ModerateForm comment={c} />{!c.notification_sent_at && <NotificationRetry id={c.id} />}<DeleteForm table="comments" id={c.id} />

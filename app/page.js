@@ -47,7 +47,8 @@ export default async function HomePage() {
 
 
           {/* ページ遷移ボタン */}
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/questions" className={buttonVariants({ variant: "outline" })}>質問コーナー</Link>
 
             {/* LinkにButtonのデザインを適用 */}
             <Link

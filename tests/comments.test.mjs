@@ -79,5 +79,21 @@ test("migrations enforce comment privacy, moderation, rate limits and deletion p
     await assert.rejects(db.query("select public.submit_comment('projects',2,'Guest','day limit','another-ip')"), /GLOBAL_RATE_LIMIT/);
     await db.exec("update public.comment_limits set window_start = now() - interval '25 hours' where fingerprint in ('global:hour','global:day');");
     await db.query("select public.submit_comment('projects',2,'Guest','new day','final-ip')");
+    await db.exec("reset role;");
+    await db.exec(await readFile(new URL("../supabase/migrations/202609210006_question_corner.sql", import.meta.url), "utf8"));
+    await db.exec("set role service_role;");
+    await assert.rejects(db.query("select public.submit_comment('general',7,'','bad','corner-ip')"), /INVALID_TARGET/);
+    await db.query("select public.submit_comment('general',0,'Guest','Text only question','corner-ip')");
+    await assert.rejects(db.query("select public.submit_comment('general',0,'','Text only question','corner-ip2')"), /DUPLICATE_COMMENT/);
+    await db.exec("set role anon;");
+    assert.equal((await db.query("select * from public.public_comments('general',0)")).rows.length, 0);
+    await assert.rejects(db.query("select public.submit_comment('general',0,'','bypass','x')"), /permission denied/);
+    await db.exec("set role authenticated; update public.comments set answer='Plain answer', is_public=true where is_general;");
+    await db.exec("set role anon;");
+    assert.equal((await db.query("select * from public.public_comments('general',0)")).rows[0].answer, 'Plain answer');
+    assert.equal((await db.query("select * from public.question_categories()")).rows.length, 0);
+    await db.exec("set role authenticated; insert into public.questions(question,answer,category,is_public) values ('Visible','Answer','category A',true), ('Draft','','private category',false);");
+    await db.exec("set role anon;");
+    assert.deepEqual((await db.query("select * from public.question_categories()")).rows, [{ category: 'category A' }]);
   } finally { await db.close(); }
 });
