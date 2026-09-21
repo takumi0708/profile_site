@@ -1,11 +1,26 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { login, saveQuestion, deletePost, saveProjectTags, saveProject, saveProfile } from "@/app/admin/actions";
+import { login, saveQuestion, deletePost, saveProjectTags, saveProject, saveProfile, saveNavigation } from "@/app/admin/actions";
 import { buttonVariants } from "@/components/ui/button";
 import MarkdownEditor from "@/components/admin/MarkdownEditor";
 
 const inputClass = "mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-ring";
+
+export function NavigationForm({ page }) {
+  const [state, action, pending] = useActionState(saveNavigation, {});
+  const [href, setHref] = useState(page?.href || "");
+  return <form action={action} className="space-y-4">
+    {page && <input type="hidden" name="id" value={page.id} />}
+    <label className="block text-sm">ボタン名・ページタイトル<input name="label" required maxLength={100} defaultValue={page?.label || ""} className={inputClass} /></label>
+    <label className="block text-sm">リンク先<select name="href" value={href} onChange={event => setHref(event.target.value)} className={inputClass}><option value="">独自ページ（Markdown）</option><option value="/questions">質問コーナー</option><option value="/interview">Interview Q&A</option><option value="/projects">Projects</option></select></label>
+    <div hidden={!!href}><MarkdownEditor name="body" label="ページ本文（Markdown）" defaultValue={page?.body || ""} maxLength={20000} /><MarkdownHelp /></div>
+    <label className="block text-sm">表示順<input name="sort_order" type="number" min={0} max={9999} step={1} required defaultValue={page?.sort_order ?? 0} className={inputClass} /></label>
+    <label className="flex items-center gap-2 text-sm"><input name="is_public" type="checkbox" defaultChecked={page?.is_public ?? true} />公開する（ヘッダーに表示）</label>
+    {state.error && <p role="alert" className="text-sm text-destructive">{state.error}</p>}
+    <button disabled={pending} className={buttonVariants()}>{pending ? "保存中…" : page ? "変更を保存" : "ボタン・ページを追加"}</button>
+  </form>;
+}
 
 export function LoginForm() {
   const [state, action, pending] = useActionState(login, {});

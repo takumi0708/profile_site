@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { supabaseConfig } from "@/lib/supabase/config";
 import { logout } from "./actions";
-import { QuestionForm, DeleteForm, ProjectForm, ProfileForm } from "@/components/admin/Forms";
+import { QuestionForm, DeleteForm, ProjectForm, ProfileForm, NavigationForm } from "@/components/admin/Forms";
 import { getProfile } from "@/lib/content";
 import { ModerateForm, NotificationRetry } from "@/components/CommentForm";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -12,8 +12,9 @@ import { buttonVariants } from "@/components/ui/button";
 export default async function AdminPage({ searchParams }) {
   if (!supabaseConfig()) redirect("/admin/login");
   const supabase = await requireAdmin();
-  const { saved, edit, projectEdit, projectSaved } = await searchParams;
+  const { saved, edit, projectEdit, projectSaved, navEdit, navSaved } = await searchParams;
   const profile = await getProfile();
+  const { data: navigation, error: navigationError } = await supabase.from("navigation_pages").select("*").order("sort_order").order("id");
   const { data: questions, error } = await supabase.from("questions").select("*").order("created_at", { ascending: false });
   const selected = questions?.find((q) => String(q.id) === edit);
   const [{ data: projects, error: projectsError }, { data: comments, error: commentsError }] = await Promise.all([
@@ -25,6 +26,14 @@ export default async function AdminPage({ searchParams }) {
       <div><p className="mb-2 text-sm text-muted-foreground">Admin</p><h1 className="text-3xl font-bold tracking-tight">ダッシュボード</h1></div>
       <div className="flex gap-3"><Link className={buttonVariants({ variant: "outline" })} href="/interview">公開ページ</Link><form action={logout}><button className={buttonVariants({ variant: "outline" })}>ログアウト</button></form></div>
     </div>
+    <Card className="mb-8" id="navigation"><CardHeader><CardTitle>ヘッダーのボタン・ページ管理</CardTitle></CardHeader><CardContent>
+      {navigationError ? <p role="alert">追加SQL（202609210007_navigation.sql）を実行してください。</p> : <>
+        {navSaved && <p role="status" className="mb-4">ボタン・ページを保存しました。</p>}
+        <p className="mb-4 text-sm text-muted-foreground">表示順が小さいボタンから並びます。同じ順番の場合は登録順です。独自ページの本文はMarkdownで編集できます。ボタンを削除すると独自ページの本文も削除されます。既存の質問・Projectsの内容は削除されません。</p>
+        <div className="grid gap-8 md:grid-cols-2"><div><NavigationForm key={`${navEdit || "new"}-${navSaved || ""}`} page={navigation.find(item => String(item.id) === navEdit)} />{navEdit && <Link href="/admin#navigation" className="mt-4 block text-sm underline">新しいボタンを追加する</Link>}</div>
+        <ul className="space-y-5">{navigation.map(item => <li key={item.id} className="border-b pb-4"><p className="text-xs text-muted-foreground">{item.is_public ? "公開中" : "下書き"} · 表示順 {item.sort_order}</p><Link href={`/admin?navEdit=${item.id}#navigation`} className="font-semibold underline">{item.label}</Link><DeleteForm table="navigation_pages" id={item.id} /></li>)}</ul></div>
+      </>}
+    </CardContent></Card>
     {saved && <p role="status" className="mb-6 text-sm">質問を保存しました。</p>}
     {error ? <p role="alert">質問を取得できませんでした。再度お試しください。</p> : <div className="grid items-start gap-6 md:grid-cols-2">
       <Card><CardHeader><CardTitle>{selected ? "質問を編集" : "質問を登録"}</CardTitle></CardHeader><CardContent><QuestionForm key={selected ? `edit-${selected.id}` : `new-${saved || ""}`} question={selected} parents={questions} />{selected && <Link className="mt-4 block text-sm underline" href="/admin">新しい質問を登録する</Link>}</CardContent></Card>

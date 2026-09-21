@@ -47,29 +47,6 @@ export default async function HomePage() {
 
 
           {/* ページ遷移ボタン */}
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/questions" className={buttonVariants({ variant: "black" })}>質問コーナー</Link>
-
-            {/* LinkにButtonのデザインを適用 */}
-            <Link
-              href="/interview"
-              className={buttonVariants({ variant: "black" })}
-            >
-              Interview Q&A
-            </Link>
-
-            {/* outlineデザインのButton */}
-            <Link
-              href="/projects"
-              className={buttonVariants({
-                variant: "black",
-              })}
-            >
-              Projects
-            </Link>
-
-          </div>
-
         </section>
 
 
@@ -143,9 +120,7 @@ export default async function HomePage() {
 
         </section>
 
-        <footer className="mt-12 text-sm text-muted-foreground">
-          <Link href="/admin" className="hover:underline">管理者ダッシュボード</Link>
-        </footer>
+
       </div>
 
     </main>

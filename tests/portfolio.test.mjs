@@ -8,6 +8,22 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { parseNavigation } from "../lib/navigation-validation.mjs";
+
+test("navigation only accepts supported destinations and bounded fields", () => {
+  const form = new FormData();
+  form.set("label", "自己紹介");
+  form.set("body", "## About");
+  form.set("sort_order", "2");
+  assert.equal(parseNavigation(form).body, "## About");
+  for (const href of ["/admin", "javascript:alert(1)", "//example.com"]) {
+    form.set("href", href);
+    assert.throws(() => parseNavigation(form));
+  }
+  form.set("href", "/projects");
+  form.set("sort_order", "1.5");
+  assert.throws(() => parseNavigation(form));
+});
 
 test("previews strip Markdown, preserve emoji clusters, and stop at 20 characters", () => {
   assert.equal(markdownPreview("## **Hello** [world](https://example.com)"), "Hello world");
@@ -42,15 +58,22 @@ test("only admins can change public profile and manage projects", async () => {
       create table auth.users(id uuid primary key);
       create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
       grant usage on schema auth to anon, authenticated;`);
-    for (const file of ["202609200001_initial.sql", "202609200004_profile.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"));
+    for (const file of ["202609200001_initial.sql", "202609200004_profile.sql", "202609210007_navigation.sql"]) await db.exec(await readFile(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"));
     await db.exec(`insert into auth.users values ('00000000-0000-0000-0000-000000000001');
       insert into public.admins values ('00000000-0000-0000-0000-000000000001'); set role anon;`);
     assert.equal((await db.query("select display_name from public.site_profile")).rows[0].display_name, "Takumi");
     await assert.rejects(db.query("update public.site_profile set display_name = 'Intruder'"), /permission denied/);
+    assert.equal((await db.query("select * from public.navigation_pages")).rows.length, 4);
+    await assert.rejects(db.query("delete from public.navigation_pages"), /permission denied/);
     await db.exec("set role authenticated;");
     assert.equal((await db.query("update public.site_profile set display_name='Intruder' returning id")).rows.length, 0);
     await assert.rejects(db.query("insert into public.projects(title,summary) values ('Denied','text')"), /row-level security/);
+    assert.equal((await db.query("update public.navigation_pages set label='Intruder' returning id")).rows.length, 0);
     await db.exec("set request.jwt.claim.sub='00000000-0000-0000-0000-000000000001';");
+    await db.exec("insert into public.navigation_pages(label,body) values ('Draft','## Secret'); update public.navigation_pages set label='About' where id=1;");
+    await db.exec("set role anon;");
+    assert.equal((await db.query("select * from public.navigation_pages where body='## Secret'")).rows.length, 0);
+    await db.exec("set role authenticated; delete from public.navigation_pages where label='Draft';");
     await db.exec("update public.site_profile set display_name='Updated', links='[{\"label\":\"X\",\"url\":\"https://x.com/test\"}]'; insert into public.projects(title,summary) values ('Draft','## Markdown');");
     await db.exec("set role anon;");
     assert.equal((await db.query("select * from public.projects")).rows.length, 0);

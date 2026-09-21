@@ -6,6 +6,20 @@ import { createClient } from "@/lib/supabase/server";
 import { requireAdmin } from "@/lib/auth";
 import { parseTags, validId } from "@/lib/validation.mjs";
 import { parseProfileLinks } from "@/lib/profile-validation.mjs";
+import { parseNavigation } from "@/lib/navigation-validation.mjs";
+
+export async function saveNavigation(previousState, formData) {
+  const supabase = await requireAdmin();
+  let values;
+  try { values = parseNavigation(formData); } catch (error) { return { error: error.message }; }
+  const id = String(formData.get("id") || "");
+  if (id && !validId(id)) return { error: "ページIDが正しくありません。" };
+  const query = id ? supabase.from("navigation_pages").update(values).eq("id", id) : supabase.from("navigation_pages").insert(values);
+  const { data, error } = await query.select("id").single();
+  if (error) return { error: "保存できませんでした。追加SQLの実行を確認してください。" };
+  revalidatePath("/", "layout");
+  redirect(`/admin?navEdit=${data.id}&navSaved=1#navigation`);
+}
 
 export async function login(previousState, formData) {
   const email = String(formData.get("email") || "").trim();
@@ -70,7 +84,7 @@ export async function deletePost(previousState, formData) {
   const supabase = await requireAdmin();
   const table = String(formData.get("table"));
   const id = String(formData.get("id"));
-  if (!["questions", "projects", "comments"].includes(table) || !validId(id)) return { error: "削除対象が正しくありません。" };
+  if (!["questions", "projects", "comments", "navigation_pages"].includes(table) || !validId(id)) return { error: "削除対象が正しくありません。" };
   if (formData.get("confirm") !== "on") return { error: "削除確認にチェックしてください。" };
   const { data, error } = await supabase.from(table).delete().eq("id", id).select("id").maybeSingle();
   if (error || !data) return { error: "削除できませんでした。再読み込みしてお試しください。" };
