@@ -3,6 +3,8 @@ import "./globals.css";
 import BackNavigation from "@/components/BackNavigation";
 import Header from "@/components/Header";
 
+import { Analytics } from '@vercel/analytics/react';
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,7 +26,10 @@ export default function RootLayout({ children }) {
       lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><Header /><BackNavigation />{children}</body>
+      <body className="min-h-full flex flex-col"><Header /><BackNavigation />
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
